@@ -1,0 +1,34 @@
+{
+  "name": "linkorb/metaculous",
+  "description": "Metaculous: Generate json",
+  "homepage": "https://github.com/linkorb/metaculous",
+  "keywords": ["metaculous", "linkorb"],
+  "type": "library",
+  "authors": [
+    {
+      "name": "Danila Pakulin",
+      "email": "pakulindev@gmail.com",
+      "role": "Development"
+    }
+  ],
+  "require": {
+    "symfony/console": "^3.0|^4.0",
+    "symfony/yaml": "^4.2",
+    "symfony/dotenv": "^3.0|^4.0",
+    "symfony/routing": "^3.0|^4.0",
+    "knplabs/github-api": "^2.10",
+    "php-http/guzzle6-adapter": "^1.1",
+    "alom/graphviz": "^1.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "Metaculous\\": "src/"
+    }
+  },
+  "license": "MIT",
+  "require-dev": {
+    "phpunit/phpunit": "^7",
+    "psy/psysh": "@stable"
+  },
+  "bin": ["bin/metaculous"]
+}
