@@ -26,7 +26,8 @@ class AnalyzeCommand extends Command
                 'config',
                 'c',
                 InputOption::VALUE_REQUIRED,
-                'Configuration file to use'
+                'Configuration file to use',
+                getcwd().'/metaculous.yaml'
             )->addOption(
                 'outputJson',
                 'o',

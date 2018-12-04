@@ -4,7 +4,6 @@ namespace Metaculous\Model;
 
 class Project
 {
-    protected $files = [];
     protected $config = [];
     protected $basePath;
 
@@ -26,15 +25,6 @@ class Project
     public function getBasePath()
     {
         return $this->basePath;
-    }
-
-    public function addFile(File $file)
-    {
-        $this->files[$file->getName()] = $file;
-    }
-    public function getFiles()
-    {
-        return $this->files;
     }
 
     public function getFilepath(string $filename): string {

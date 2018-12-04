@@ -9,14 +9,8 @@ class ArrayProjectLoader
 {   
     public function load($data, $basePath)
     {
-        $project = new Project($basePath, $data);
-        
-        foreach ($data['files'] ?? [] as $name => $fileData) {
-            $template = $fileData['template'] ?? null;
-            $variables = $fileData['variables'] ?? [];
-            $file = new File($name, $template, $variables);
-            $project->addFile($file);
-        }
+        $project = new Project($basePath, $data); 
+        // TODO: Load variables
         return $project;
     }
 }

@@ -1,0 +1,215 @@
+{
+    "anonymizer.yml": {
+        "columns": {
+            "user.username": {
+                "method": "faker",
+                "arguments": {
+                    "formatter": "userName"
+                }
+            },
+            "user.email": {
+                "method": "faker",
+                "arguments": {
+                    "formatter": "email"
+                }
+            }
+        }
+    },
+    "bower.json": {
+        "name": "myProject",
+        "version": "1.0.0",
+        "dependencies": {
+            "bootstrap": "~3.3.0",
+            "bootswatch-dist": "3.3.0-lumen",
+            "font-awesome": "~4.3.0",
+            "jquery": ">= 1.9.1"
+        }
+    },
+    ".circleci/config.yml": {
+        "version": 2,
+        "install_composer": {
+            "run": "cd /tmp\nEXPECTED_SIGNATURE=$(curl -q https://composer.github.io/installer.sig)\nphp -r \"copy('https://getcomposer.org/installer', 'composer-setup.php');\"\nACTUAL_SIGNATURE=$(php -r \"echo hash_file('SHA384', 'composer-setup.php');\")\nif [ \"$EXPECTED_SIGNATURE\" != \"$ACTUAL_SIGNATURE\" ]\nthen\n    >&2 echo 'ERROR: Invalid installer signature'\n    rm composer-setup.php\n    exit 1\nfi\nsudo php composer-setup.php --quiet --install-dir /usr/local/bin --filename composer\nRESULT=$?\nrm composer-setup.php\nexit $RESULT\n"
+        },
+        "jobs": {
+            "build": {
+                "docker": [
+                    {
+                        "image": "circleci/php:7.1.5-browsers"
+                    }
+                ],
+                "working_directory": "~/networq-php",
+                "steps": [
+                    "checkout",
+                    {
+                        "restore_cache": {
+                            "keys": [
+                                "v1-dependencies-{{ checksum \"composer.json\" }}",
+                                "v1-dependencies-"
+                            ]
+                        }
+                    },
+                    {
+                        "run": null
+                    },
+                    {
+                        "run": "composer install -n --prefer-dist"
+                    },
+                    {
+                        "save_cache": {
+                            "paths": [
+                                "./vendor"
+                            ],
+                            "key": "v1-dependencies-{{ checksum \"composer.json\" }}"
+                        }
+                    },
+                    {
+                        "run": "./vendor/bin/grumphp run"
+                    }
+                ]
+            }
+        }
+    },
+    "composer.json": {
+        "name": "acme/example",
+        "description": "Acme Example project",
+        "homepage": "https://github.com/acme/example",
+        "keywords": [
+            "example",
+            "acme"
+        ],
+        "authors": [
+            {
+                "name": "Joe Johnson",
+                "email": "joe@exampl.com",
+                "role": "Development"
+            }
+        ],
+        "require": {
+            "symfony/console": "^4.0"
+        },
+        "license": "MIT"
+    },
+    "docker-compose.yml": {
+        "version": "2",
+        "services": {
+            "php": {
+                "build": "./docker/.",
+                "networks": [
+                    "frontend",
+                    "backend"
+                ],
+                "volumes": [
+                    "./:/usr/share/nginx/html"
+                ],
+                "depends_on": [
+                    "mysql"
+                ]
+            },
+            "nginx": {
+                "image": "nginx:1.11",
+                "ports": [
+                    "8989:80"
+                ],
+                "networks": [
+                    "frontend"
+                ],
+                "volumes": [
+                    "./:/usr/share/nginx/html:ro",
+                    "./docker/nginx.conf:/etc/nginx/conf.d/default.conf"
+                ],
+                "depends_on": [
+                    "php"
+                ]
+            },
+            "mysql": {
+                "image": "mysql:5.7",
+                "networks": [
+                    "backend"
+                ],
+                "environment": {
+                    "MYSQL_ROOT_PASSWORD": "hello"
+                },
+                "volumes": [
+                    "mysql-data:/var/lib/mysql"
+                ]
+            }
+        },
+        "networks": {
+            "frontend": null,
+            "backend": null
+        },
+        "volumes": {
+            "mysql-data": {
+                "driver": "local"
+            }
+        }
+    },
+    "Dockerfile": "FROM ubuntu:14.04\n\nRUN apt-get update\n\n##\n# Base\n##\n\nRUN apt-get install -y python-setuptools git curl\n\n##\n# PHP & nginx\n##\n\n## Install required packages\nRUN apt-get install -y php5-cli php5-fpm nginx php5-mysql php5-curl\n\n## Patch-up the fpm version of php.ini\nRUN echo \"cgi.fix_pathinfo = 0;\" >> /etc/php5/fpm/php.ini\n\n## Make sure nginx stays in the foreground\nRUN echo \"daemon off;\" >> /etc/nginx/nginx.conf\nADD docker/nginx.conf /etc/nginx/sites-available/default\n\n##\n# Composer\n##\n\nRUN (curl -sS https://getcomposer.org/installer | php && mv composer.phar /usr/local/bin/composer)\n\n##\n# Build.\n##\n\nRUN mkdir /share\n\n## hack database host to dev machine\nRUN echo \"10.0.2.2  mysqlhost\" >> /etc/hosts\n\n\n## Copy all files from the local directory into the container's /app directory\nADD . /app\n\n## Run `composer install` inside the container's /app directory\nRUN cd /app && composer install --prefer-dist --no-progress --ignore-platform-reqs\n\n## Announce that this container exposes port 80\n## Note: it doesn't become accessible unless you 'expose' it during `docker run` with -P\nEXPOSE 80\n\n## Start the container's single process (php5-fpm in background, nginx in foreground)\nCMD [\"sh\", \"-c\", \"service php5-fpm start && nginx\"]\n",
+    "schema-dot": "digraph A {\n    \"App\\\\Entity\\\\Comment\" [shape=none, label=<<table><tr><td>symfony_demo_comment</td></tr><tr><td>content</td><td>text</td><td>scale: 0,    length: NULL,    unique: false,    nullable: false,    precision: 0</td></tr><tr><td>published_at</td><td>datetime</td><td>scale: 0,    length: NULL,    unique: false,    nullable: false,    precision: 0</td></tr><tr><td>post_id</td><td>reference</td><td>references to symfony_demo_post:id</td></tr><tr><td>author_id</td><td>reference</td><td>references to symfony_demo_user:id</td></tr></table>>];\n    symfony_demo_post_tag [shape=none, label=<<table><tr><td>symfony_demo_post_tag</td></tr><tr><td>post_id</td><td>reference</td><td>references to id</td></tr><tr><td>tag_id</td><td>reference</td><td>references to id</td></tr></table>>];\n    \"App\\\\Entity\\\\Post\" [shape=none, label=<<table><tr><td>symfony_demo_post</td></tr><tr><td>title</td><td>string</td><td>scale: 0,    length: NULL,    unique: false,    nullable: false,    precision: 0</td></tr><tr><td>slug</td><td>string</td><td>scale: 0,    length: NULL,    unique: false,    nullable: false,    precision: 0</td></tr><tr><td>summary</td><td>string</td><td>scale: 0,    length: NULL,    unique: false,    nullable: false,    precision: 0</td></tr><tr><td>content</td><td>text</td><td>scale: 0,    length: NULL,    unique: false,    nullable: false,    precision: 0</td></tr><tr><td>published_at</td><td>datetime</td><td>scale: 0,    length: NULL,    unique: false,    nullable: false,    precision: 0</td></tr><tr><td>author_id</td><td>reference</td><td>references to symfony_demo_user:id</td></tr></table>>];\n    \"App\\\\Entity\\\\Tag\" [shape=none, label=<<table><tr><td>symfony_demo_tag</td></tr><tr><td>name</td><td>string</td><td>scale: 0,    length: NULL,    unique: true,    nullable: false,    precision: 0</td></tr></table>>];\n    \"App\\\\Entity\\\\User\" [shape=none, label=<<table><tr><td>symfony_demo_user</td></tr><tr><td>full_name</td><td>string</td><td>scale: 0,    length: NULL,    unique: false,    nullable: false,    precision: 0</td></tr><tr><td>username</td><td>string</td><td>scale: 0,    length: NULL,    unique: true,    nullable: false,    precision: 0</td></tr><tr><td>email</td><td>string</td><td>scale: 0,    length: NULL,    unique: true,    nullable: false,    precision: 0</td></tr><tr><td>password</td><td>string</td><td>scale: 0,    length: NULL,    unique: false,    nullable: false,    precision: 0</td></tr><tr><td>roles</td><td>json</td><td>scale: 0,    length: NULL,    unique: false,    nullable: false,    precision: 0</td></tr></table>>];\n    \"App\\\\Entity\\\\Comment\" -> \"App\\\\Entity\\\\Post\";\n    \"App\\\\Entity\\\\Comment\" -> \"App\\\\Entity\\\\User\";\n    \"App\\\\Entity\\\\Post\" -> \"App\\\\Entity\\\\User\";\n    \"App\\\\Entity\\\\Tag\" -> symfony_demo_post_tag;\n    symfony_demo_post_tag -> \"App\\\\Entity\\\\Tag\";\n    \"App\\\\Entity\\\\Post\" -> symfony_demo_post_tag;\n    symfony_demo_post_tag -> \"App\\\\Entity\\\\Post\";\n}\n",
+    "schema-svg": "doc/schema.svg",
+    ".env.dist": [
+        {
+            "name": "APP_ENV",
+            "default": "DEBUG",
+            "comment": "Application environments.\nOptions: DEBUG | PROD"
+        },
+        {
+            "name": "PDO_URL",
+            "default": "mysql://username:password@localhost/dbname",
+            "comment": "PDO URL. For example"
+        },
+        {
+            "name": "XYZ_TOKEN",
+            "default": "\"MTIzNA==\"",
+            "comment": "Token to do XYZ"
+        }
+    ],
+    ".editorconfig": "root = true\n\n[*]\ncharset = utf-8\nend_of_line = lf\nindent_style = space\nindent_size = 2\ninsert_final_newline = true\ntrim_trailing_whitespace = true\n\n[*.php]\nindent_size = 4\n\n[{Makefile,**.mk}]\nindent_style = tab\n",
+    "fixtures": true,
+    "Makefile": {
+        "clean": "Clean working directory",
+        ".env": null,
+        "build": "Build it",
+        "composer.lock": "Generate composer.lock",
+        "vendor": null,
+        "test": null,
+        "phpqa-phpcs": null,
+        "help": "This help message"
+    },
+    "package.json": {
+        "name": "example-react",
+        "version": "0.1.0",
+        "private": true,
+        "dependencies": {
+            "react": "^16.4.2",
+            "react-dom": "^16.4.2",
+            "react-scripts": "1.1.4"
+        },
+        "scripts": {
+            "start": "react-scripts start",
+            "build": "react-scripts build",
+            "test": "react-scripts test --env=jsdom",
+            "eject": "react-scripts eject"
+        }
+    },
+    "route_collection": {
+        "admin_index": {
+            "path": "/{_locale}/admin/post/",
+            "method": "GET",
+            "host": "ANY",
+            "controller": "App\\Controller\\Admin\\BlogController::index"
+        },
+        "admin_post_index": {
+            "path": "/{_locale}/admin/post/",
+            "method": "GET",
+            "host": "ANY",
+            "controller": "App\\Controller\\Admin\\BlogController::index"
+        },
+        "admin_post_new": {
+            "path": "/{_locale}/admin/post/new",
+            "method": "GET|POST",
+            "host": "ANY",
+            "controller": "App\\Controller\\Admin\\BlogController::new"
+        }
+    }
+}
