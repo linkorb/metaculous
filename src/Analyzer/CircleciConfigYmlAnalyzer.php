@@ -10,7 +10,9 @@ class CircleciConfigYmlAnalyzer extends Analyzer
     public function analyze(Project $project): ?array
     {
         return $this->maybeGetContent($project, '.circleci/config.yml', function($data) {
-            return Yaml::parse($data);
+            $data = Yaml::parse($data);
+            unset($data['jobs']);
+            return $data;
         });
     }
 }
