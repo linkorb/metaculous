@@ -17,7 +17,7 @@
     "symfony/dotenv": "^3.0|^4.0",
     "symfony/routing": "^3.0|^4.0",
     "knplabs/github-api": "^3.0",
-    "php-http/guzzle6-adapter": "^1.1",
+    "php-http/guzzle6-adapter": "^1.1 || ^2.0.0",
     "alom/graphviz": "^1.1"
   },
   "autoload": {
